@@ -76,8 +76,9 @@ class GameScreen extends ConsumerWidget {
                 ),
               ),
 
-              // 4. Bottom Dock: Physical Dice Face Bar (Buttons 1 to 6)
-              _BottomDiceInputDock(gameState: gameState),
+              // 4. Bottom Dock: Physical Dice Face Bar (Buttons 1 to 6 - Physical Mode Only)
+              if (!gameState.rules.useInGameDice)
+                _BottomDiceInputDock(gameState: gameState),
             ],
           ),
         ),
@@ -164,7 +165,7 @@ class _GameTopBar extends ConsumerWidget {
           ),
           Row(
             children: [
-              if (gameState.recentEntries.isNotEmpty)
+              if (!gameState.rules.useInGameDice && gameState.recentEntries.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.undo_rounded, color: Colors.white, size: 24),
                   onPressed: !gameState.isVoting
@@ -250,6 +251,8 @@ class _TabletopArena extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
+        final placeholderW = gameState.rules.useInGameDice ? 160.0 : 125.0;
+        final placeholderH = gameState.rules.useInGameDice ? 50.0 : 42.0;
 
         if (isLandscape) {
           // Landscape Mode:
@@ -260,8 +263,8 @@ class _TabletopArena extends ConsumerWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  redP != null ? _buildDock(ref, redP, isRightSide: false) : const SizedBox(width: 125, height: 42),
-                  blueP != null ? _buildDock(ref, blueP, isRightSide: false) : const SizedBox(width: 125, height: 42),
+                  redP != null ? _buildDock(ref, redP, isRightSide: false) : SizedBox(width: placeholderW, height: placeholderH),
+                  blueP != null ? _buildDock(ref, blueP, isRightSide: false) : SizedBox(width: placeholderW, height: placeholderH),
                 ],
               ),
               const SizedBox(width: 6),
@@ -277,8 +280,8 @@ class _TabletopArena extends ConsumerWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  greenP != null ? _buildDock(ref, greenP, isRightSide: true) : const SizedBox(width: 125, height: 42),
-                  yellowP != null ? _buildDock(ref, yellowP, isRightSide: true) : const SizedBox(width: 125, height: 42),
+                  greenP != null ? _buildDock(ref, greenP, isRightSide: true) : SizedBox(width: placeholderW, height: placeholderH),
+                  yellowP != null ? _buildDock(ref, yellowP, isRightSide: true) : SizedBox(width: placeholderW, height: placeholderH),
                 ],
               ),
             ],
@@ -293,8 +296,8 @@ class _TabletopArena extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  redP != null ? _buildDock(ref, redP, isRightSide: false) : const SizedBox(width: 125, height: 42),
-                  greenP != null ? _buildDock(ref, greenP, isRightSide: true) : const SizedBox(width: 125, height: 42),
+                  redP != null ? _buildDock(ref, redP, isRightSide: false) : SizedBox(width: placeholderW, height: placeholderH),
+                  greenP != null ? _buildDock(ref, greenP, isRightSide: true) : SizedBox(width: placeholderW, height: placeholderH),
                 ],
               ),
               const SizedBox(height: 4),
@@ -310,8 +313,8 @@ class _TabletopArena extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  blueP != null ? _buildDock(ref, blueP, isRightSide: false) : const SizedBox(width: 125, height: 42),
-                  yellowP != null ? _buildDock(ref, yellowP, isRightSide: true) : const SizedBox(width: 125, height: 42),
+                  blueP != null ? _buildDock(ref, blueP, isRightSide: false) : SizedBox(width: placeholderW, height: placeholderH),
+                  yellowP != null ? _buildDock(ref, yellowP, isRightSide: true) : SizedBox(width: placeholderW, height: placeholderH),
                 ],
               ),
             ],
@@ -334,17 +337,18 @@ class _TabletopArena extends ConsumerWidget {
     final dock = LudoCornerDock(
       player: player,
       isActive: isActive,
+      useInGameDice: gameState.rules.useInGameDice,
+      isAwaitingDice: gameState.isAwaitingDice,
+      isAwaitingPiece: gameState.isAwaitingPiece,
       currentDiceValue: diceVal,
       teamLabel: teamLabel,
       isHelpingPartner: isHelpingPartner,
       isRightSide: isRightSide,
+      onRoll: (value) {
+        ref.read(gameControllerProvider.notifier).enterDiceValue(value);
+      },
       onDiceTap: () {
-        if (isActive && gameState.isAwaitingDice) {
-          if (gameState.rules.useInGameDice) {
-            final roll = math.Random().nextInt(6) + 1;
-            ref.read(gameControllerProvider.notifier).enterDiceValue(roll);
-          }
-        } else if (isActive && gameState.isAwaitingPiece && gameState.legalMoves.length == 1) {
+        if (isActive && gameState.isAwaitingPiece && gameState.legalMoves.length == 1) {
           ref
               .read(gameControllerProvider.notifier)
               .selectPiece(gameState.legalMoves.first.piece.id);
@@ -996,15 +1000,6 @@ class _BottomDiceInputDock extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (gameState.rules.useInGameDice) {
-      return InGameDiceRoller(
-        gameState: gameState,
-        onRoll: (number) {
-          ref.read(gameControllerProvider.notifier).enterDiceValue(number);
-        },
-      );
-    }
-
     final activeColor = _resolveColor(gameState.activePlayer.color);
 
     return Container(
@@ -1115,11 +1110,13 @@ class _CenterTableArea extends StatelessWidget {
         player: ann.player,
         diceValue: ann.diceValue,
         size: size,
-        onRequestUndo: () {
-          if (gameState.recentEntries.isNotEmpty && !gameState.isVoting) {
-            onRequestUndo();
-          }
-        },
+        onRequestUndo: !gameState.rules.useInGameDice
+            ? () {
+                if (gameState.recentEntries.isNotEmpty && !gameState.isVoting) {
+                  onRequestUndo();
+                }
+              }
+            : null,
       );
     }
 
@@ -1178,7 +1175,7 @@ class _CenterTableArea extends StatelessWidget {
     }
 
     // 3. Priority 3: Tabletop UNDO Button in the center of the table
-    if (gameState.recentEntries.isNotEmpty && !gameState.isGameOver) {
+    if (!gameState.rules.useInGameDice && gameState.recentEntries.isNotEmpty && !gameState.isGameOver) {
       return Center(
         child: Material(
           color: Colors.transparent,
@@ -1390,5 +1387,6 @@ class _CenterDicePopupState extends State<_CenterDicePopup>
         PlayerColor.yellow => GhostDiceTheme.pieceYellow,
       };
 }
+
 
 
