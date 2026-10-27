@@ -1,125 +1,129 @@
 # Ghost Dice 🎲👻
 
-**Physical Dice. Digital Board.**
-
-Ghost Dice brings the authentic joy of rolling physical dice to a digital, automated Ludo board. Players gather around a single shared device, roll their own real tabletop dice, and enter the rolled numbers into the app. Ghost Dice takes care of all the rules, board tracking, valid paths, captures, animations, and fairness enforcement.
+**Physical-Dice Digital Ludo** — Roll a real die, enter the number, let the app handle the board.
 
 ---
 
-## 📖 How Everything Works in the App
+## What is Ghost Dice?
 
-### 1. Starting a Game
-- Choose between **Classic Mode** (Free-For-All) or **Team Up (2 vs 2)** directly from the home screen.
-- Customize player names and review the match rules before beginning.
-- Each player is assigned an authentic corner dock with their personal color (Red, Green, Yellow, or Blue) and token home yard.
+Ghost Dice is a local pass-and-play Ludo game for 2–4 players on one shared device. Players use a **real physical die** and enter the number they roll into the app. The app manages:
 
-### 2. Player Turns & Rolling
-- The active player’s tag glows gold with an animated indicator pointing to their dice slot.
-- **Roll your physical die** on the table.
-- **Tap your rolled number (1 to 6)** on the bottom dice selection dock.
-- If preferred, tapping the active player's dice slot can also roll a virtual die.
+- Board state, legal moves, captures, safe squares
+- Home-lane movement and exact-finish rules
+- Bonus entries for rolling 6, capturing, or finishing a piece
+- Three-consecutive-sixes forfeiture
+- **Democratic undo voting** — up to the last 3 declared dice entries can be challenged and rolled back by group vote
 
-### 3. Moving Tokens
-- Once a number is entered, the app automatically calculates all legal moves according to the game rules.
-- Tokens that can legally move will highlight on the board.
-- Tap any highlighted token to make your move; the token will hop smoothly along the track to its destination.
-- **Smart Auto-Play**: If only one of your tokens can legally move, the app automatically moves it for you, keeping gameplay fast and effortless.
-
-### 4. Center Board Roll Display (Fairness Popup)
-- Every time a player enters a number and moves a piece, the rolled die value and the player's name pop up right in the **center home box** of the board for **3 seconds**.
-- This guarantees all players around the table clearly see and verify what number was played.
-
-### 5. Tabletop Undo & Democratic Voting System
-Ghost Dice is built on tabletop honesty and provides a fair, democratic challenge system for mistakes or disputes:
-- If a player enters the wrong number by accident or a roll is contested, anyone can tap the **Tabletop UNDO** button located in the center of the board or top bar.
-- **Fair Voting**: The player whose move is challenged cannot vote to eliminate bias. Only the remaining players cast a **YES** or **NO** vote.
-- If a majority votes YES, the move is instantly rolled back to the previous turn state so the correct roll can be played.
-
-### 6. Seamless Resume Game
-- Never lose your match progress! If you accidentally close the app, receive a phone call, or exit to the home screen, the match state is saved.
-- When returning to the home screen, a **Continue Game** banner appears with the current match details. Tap it to immediately resume right where you left off.
+No internet, no accounts, no camera. Pure tabletop honesty.
 
 ---
 
-## 🏆 Game Modes
+## Tech Stack
 
-### 1. Classic Mode (Free-For-All)
-- For 2 to 4 players.
-- Every player competes independently.
-- The first player to successfully navigate all 4 of their tokens around the board and into the center home triangle wins the match.
+| Layer | Technology |
+|---|---|
+| Framework | Flutter (Dart) |
+| State Management | Riverpod (`flutter_riverpod`) |
+| Navigation | `go_router` |
+| Local Persistence | SQLite (`sqflite`) |
+| Preferences | `shared_preferences` |
 
-### 2. Team Up Mode (2 vs 2 Co-op)
-- Players team up into two competing alliances:
-  - **Team 1**: Red & Yellow
-  - **Team 2**: Green & Blue
-- Teammates work together cooperatively to eliminate opponents and protect each other's tokens.
-- **Team Victory**: A team only wins when **all 8 tokens** across both teammates reach home!
+## Supported Platforms
 
----
-
-## 📜 Complete Game Rules
-
-### Entering the Board
-- Tokens start in their designated home yard.
-- A player must roll a **6** to bring a token out of the yard onto their starting square (this can be configured in settings to allow any roll).
-
-### Movement & Track Navigation
-- Tokens move clockwise along the outer 52-square track based on the exact rolled value.
-- After completing a full circuit of the board, tokens turn into their colored **Home Lane** leading toward the center.
-
-### Safe Squares (★)
-- Squares marked with a **Star (★)** and player starting squares are **Safe Zones**.
-- Any token resting on a safe square is completely protected and cannot be captured. Multiple tokens of any color can safely share a star square.
-
-### Captures
-- When a token lands on an opponent's token on a regular track square, the opponent's token is **captured** and sent back to its starting yard.
-- Capturing an opponent grants the capturing player an **extra bonus turn**.
-
-### Bonus Turns
-Players earn an immediate extra turn in the following cases:
-1. Rolling a **6** earns a bonus roll.
-2. Capturing an opponent's token earns a bonus roll.
-3. Successfully finishing a token in the center home earns a bonus roll.
-
-### Three Sixes Forfeit Rule
-- To keep the game balanced, rolling **three consecutive 6s** forfeits the turn immediately. The third roll cannot be used, and turn passes to the next player.
-
-### Exact Roll to Finish
-- To enter the center home triangle, a player must roll the **exact number** needed. Overshooting the finish line is not allowed, and the token must wait for the exact roll.
+- Android (phone & tablet)
+- iOS (iPhone & iPad)
+- Windows desktop
+- macOS desktop
+- Linux desktop
 
 ---
 
-## 🤝 Team Up (2 vs 2) Special Rules
+## Project Structure
 
-Team Up mode introduces cooperative tactical rules:
-
-1. **Teammates Never Capture Each Other**:
-   - When a player's token lands on a square already occupied by their partner's token, neither piece is captured. Both tokens share the square peacefully.
-
-2. **The Pair Shield Rule**:
-   - When two tokens of the same team occupy the same square (whether both are the same color or one from each teammate), they form a **defensive shield**.
-   - If a single opponent token enters that square, it **cannot capture** the pair. The opponent token simply waits on that square alongside the pair.
-
-3. **Pair vs. Pair Capture**:
-   - If a square holds two defending team tokens and a waiting opponent, and a **second opponent token** arrives on that same square, the defense is broken!
-   - Both defending tokens are captured simultaneously and sent back to their yards, leaving the square in the hands of the two attacking tokens.
-
-4. **Abandonment / Departure Capture**:
-   - If two team tokens are sharing a square with a waiting opponent, the pair shield protects them.
-   - However, if one of the partner tokens moves away on its turn, it abandons its teammate!
-   - The remaining lone token is immediately captured by the waiting opponent and sent back to the yard (unless the encounter is on a safe star square).
-
-5. **Partner Assistance (Post-Finish Play)**:
-   - When a player finishes all 4 of their personal tokens, they do not stop playing!
-   - On their turns, they continue rolling their dice and use their numbers to move their **partner's remaining tokens** until the entire team finishes all 8 tokens for the win.
+```
+lib/
+├── main.dart             # Entry point
+├── app.dart              # Root widget + theme + router
+├── core/theme/           # GhostDiceTheme (dark, premium)
+├── domain/
+│   ├── entities/         # Player, Piece, BoardPosition, GameRules, etc.
+│   ├── enums/            # PlayerColor, PieceStatus, TurnPhase, etc.
+│   ├── services/         # LudoRulesEngine, UndoManager (pure Dart)
+│   └── repositories/     # Interfaces for persistence
+├── application/
+│   ├── state/            # GameState (immutable)
+│   └── controllers/      # GameController, SetupController (Riverpod)
+├── infrastructure/       # SQLite persistence (Phase 4)
+└── presentation/
+    ├── board/            # LudoBoardPainter, PieceWidget, BoardCoordinates
+    ├── widgets/          # DiceNumberPicker, PlayerPanel, MoveAnnouncement, UndoVoteDialog
+    ├── screens/          # HomeScreen, GameSetupScreen, GameScreen, RulesScreen, GameSummaryScreen
+    └── providers/        # AppRouter
+```
 
 ---
 
-## ⚙️ Customizable Game Rules
+## Getting Started
 
-Before launching any match, hosts can toggle specific classic rules to match their house preferences:
-- **Need a 6 to enter the board**: Require a roll of 6 to leave yard, or allow any number.
-- **Three 6s in a row forfeits the turn**: Enable or disable the three-sixes penalty.
-- **Must roll exact number to reach home**: Require exact rolls or allow any roll equal or higher.
-- **Form blockades with two pieces**: Enable traditional same-color blockades.
-- **Starred squares are safe**: Enable or disable star square safety.
+### Prerequisites
+
+1. Install [Flutter](https://docs.flutter.dev/get-started/install) (stable channel, 3.x+)
+2. Run `flutter doctor` to verify your environment
+
+### Run
+
+```bash
+cd ghost_dice
+flutter pub get
+flutter run
+```
+
+For a specific platform:
+
+```bash
+flutter run -d windows   # Windows desktop
+flutter run -d macos     # macOS desktop
+flutter run -d linux     # Linux desktop
+flutter run -d <device>  # Android or iOS device
+```
+
+### Test
+
+```bash
+flutter test
+flutter analyze
+dart format .
+```
+
+---
+
+## Implementation Phases
+
+| Phase | Status | Description |
+|---|---|---|
+| 0 | ✅ Structure | Project dirs, pubspec, lints |
+| 1 | ✅ Domain | Rules engine, entities, unit tests |
+| 2 | ✅ UI | Screens, board painter, dice picker, player panels |
+| 3 | 🚧 Undo | History snapshots, vote system, rollback |
+| 4 | 🔜 Persistence | SQLite save/restore, settings |
+| 5 | 🔜 Polish | Sound, keyboard nav, accessibility |
+| 6 | 🔜 Release | Build targets, integration tests |
+
+---
+
+## Game Rules Summary
+
+- Roll a real die → tap the number on screen
+- Need a **6** to enter the board (configurable)
+- Land on an opponent → they return to yard
+- Starred squares (★) are safe from capture
+- Finish all 4 pieces to win
+- **Bonus entry** for: rolling 6, capturing, or finishing a piece (one bonus per move)
+- **Three 6s in a row** → turn forfeited
+- **Undo voting**: challenged entry rolls back to the state before it; a strict majority needed within 15 seconds
+
+---
+
+## Honest Design
+
+Ghost Dice cannot verify what the physical die actually showed. The app records **declared numbers** and provides public announcements and democratic undo voting as the fairness mechanism. It does not claim to prevent physical cheating.
