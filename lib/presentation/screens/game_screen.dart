@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -19,6 +19,7 @@ import 'package:ghost_dice/presentation/board/board_painter.dart';
 import 'package:ghost_dice/presentation/board/piece_widget.dart';
 import 'package:ghost_dice/presentation/widgets/captured_piece_fly_back_overlay.dart';
 import 'package:ghost_dice/presentation/widgets/dice_number_picker.dart';
+import 'package:ghost_dice/presentation/widgets/in_game_dice_roller.dart';
 import 'package:ghost_dice/presentation/widgets/ludo_corner_dock.dart';
 import 'package:ghost_dice/infrastructure/repositories/game_repository.dart';
 import 'package:ghost_dice/presentation/widgets/move_announcement.dart';
@@ -339,8 +340,10 @@ class _TabletopArena extends ConsumerWidget {
       isRightSide: isRightSide,
       onDiceTap: () {
         if (isActive && gameState.isAwaitingDice) {
-          final roll = math.Random().nextInt(6) + 1;
-          ref.read(gameControllerProvider.notifier).enterDiceValue(roll);
+          if (gameState.rules.useInGameDice) {
+            final roll = math.Random().nextInt(6) + 1;
+            ref.read(gameControllerProvider.notifier).enterDiceValue(roll);
+          }
         } else if (isActive && gameState.isAwaitingPiece && gameState.legalMoves.length == 1) {
           ref
               .read(gameControllerProvider.notifier)
@@ -993,6 +996,15 @@ class _BottomDiceInputDock extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (gameState.rules.useInGameDice) {
+      return InGameDiceRoller(
+        gameState: gameState,
+        onRoll: (number) {
+          ref.read(gameControllerProvider.notifier).enterDiceValue(number);
+        },
+      );
+    }
+
     final activeColor = _resolveColor(gameState.activePlayer.color);
 
     return Container(
@@ -1378,4 +1390,5 @@ class _CenterDicePopupState extends State<_CenterDicePopup>
         PlayerColor.yellow => GhostDiceTheme.pieceYellow,
       };
 }
+
 

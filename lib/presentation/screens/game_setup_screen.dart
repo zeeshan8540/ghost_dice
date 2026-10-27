@@ -1,4 +1,4 @@
-// GameSetupScreen — player name, color, count, and rules configuration.
+﻿// GameSetupScreen — player name, color, count, and rules configuration.
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -43,6 +43,15 @@ class GameSetupScreen extends ConsumerWidget {
                 _GameModeSelector(
                   isTeamUp: setup.isTeamUp,
                   onSelect: controller.setGameMode,
+                ),
+                const SizedBox(height: 24),
+
+                // Dice Mode selector
+                const _SectionHeader(title: 'Dice Mode'),
+                const SizedBox(height: 12),
+                _DiceModeSelector(
+                  useInGameDice: setup.rules.useInGameDice,
+                  onSelect: controller.setUseInGameDice,
                 ),
                 const SizedBox(height: 24),
 
@@ -146,6 +155,43 @@ class GameSetupScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DiceModeSelector extends StatelessWidget {
+  final bool useInGameDice;
+  final ValueChanged<bool> onSelect;
+
+  const _DiceModeSelector({
+    required this.useInGameDice,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _ModeOptionCard(
+            title: 'In-Game Dice',
+            subtitle: 'Auto RNG (1–6)',
+            icon: Icons.casino_rounded,
+            isSelected: useInGameDice,
+            onTap: () => onSelect(true),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _ModeOptionCard(
+            title: 'Physical Dice',
+            subtitle: 'Roll Real Die',
+            icon: Icons.touch_app_rounded,
+            isSelected: !useInGameDice,
+            onTap: () => onSelect(false),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -546,3 +592,4 @@ class _RuleToggle extends StatelessWidget {
     );
   }
 }
+

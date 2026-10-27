@@ -1,4 +1,4 @@
-// Configurable game rules — all rule variants in one place.
+﻿// Configurable game rules — all rule variants in one place.
 // Saved alongside each game so a resumed game uses the same rules.
 
 class GameRules {
@@ -26,6 +26,9 @@ class GameRules {
   /// Whether this is a 2v2 Team Up match. (Default: false)
   final bool isTeamUp;
 
+  /// Whether to play with in-game RNG dice roll instead of physical dice entry. (Default: false)
+  final bool useInGameDice;
+
   const GameRules({
     this.requireSixToLeaveYard = true,
     this.threeSixesForfeitTurn = true,
@@ -35,6 +38,7 @@ class GameRules {
     this.undoHistoryLimit = 3,
     this.undoVoteTimeoutSeconds = 15,
     this.isTeamUp = false,
+    this.useInGameDice = false,
   });
 
   static const defaults = GameRules();
@@ -48,6 +52,7 @@ class GameRules {
     int? undoHistoryLimit,
     int? undoVoteTimeoutSeconds,
     bool? isTeamUp,
+    bool? useInGameDice,
   }) =>
       GameRules(
         requireSixToLeaveYard:
@@ -62,6 +67,7 @@ class GameRules {
         undoVoteTimeoutSeconds:
             undoVoteTimeoutSeconds ?? this.undoVoteTimeoutSeconds,
         isTeamUp: isTeamUp ?? this.isTeamUp,
+        useInGameDice: useInGameDice ?? this.useInGameDice,
       );
 
   Map<String, dynamic> toJson() => {
@@ -73,6 +79,7 @@ class GameRules {
         'undoHistoryLimit': undoHistoryLimit,
         'undoVoteTimeoutSeconds': undoVoteTimeoutSeconds,
         'isTeamUp': isTeamUp,
+        'useInGameDice': useInGameDice,
       };
 
   factory GameRules.fromJson(Map<String, dynamic> json) => GameRules(
@@ -85,5 +92,6 @@ class GameRules {
         undoHistoryLimit: json['undoHistoryLimit'] as int? ?? 3,
         undoVoteTimeoutSeconds: json['undoVoteTimeoutSeconds'] as int? ?? 15,
         isTeamUp: json['isTeamUp'] as bool? ?? false,
+        useInGameDice: json['useInGameDice'] as bool? ?? false,
       );
 }

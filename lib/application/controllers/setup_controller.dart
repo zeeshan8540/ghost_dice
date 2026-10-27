@@ -1,4 +1,4 @@
-// SetupController — manages game-setup screen state.
+﻿// SetupController â€” manages game-setup screen state.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ghost_dice/domain/entities/board_config.dart';
 import 'package:ghost_dice/domain/entities/game_rules.dart';
@@ -150,6 +150,10 @@ class SetupController extends StateNotifier<SetupState> {
     state = state.copyWith(rules: rules);
   }
 
+  void setUseInGameDice(bool value) {
+    state = state.copyWith(rules: state.rules.copyWith(useInGameDice: value));
+  }
+
   void _validate() {
     final errors = List<String?>.filled(state.playerCount, null);
     for (var i = 0; i < state.playerCount; i++) {
@@ -175,3 +179,4 @@ class SetupController extends StateNotifier<SetupState> {
         return (name: state.names[i].trim(), color: state.colors[i]);
       });
 }
+

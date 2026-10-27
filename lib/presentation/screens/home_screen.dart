@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ghost_dice/application/controllers/game_controller.dart';
@@ -170,11 +170,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                               },
                             ),
                             _MenuButton(
-                              label: 'New Game (Classic)',
-                              icon: Icons.play_arrow_rounded,
+                              label: 'Play with Dice',
+                              icon: Icons.casino_rounded,
                               isPrimary: true,
                               onTap: () {
-                                ref.read(setupControllerProvider.notifier).setGameMode(false);
+                                final notifier = ref.read(setupControllerProvider.notifier);
+                                notifier.setUseInGameDice(true);
+                                notifier.setGameMode(false);
+                                context.go('/setup');
+                              },
+                            ),
+                            const SizedBox(height: 14),
+                            _MenuButton(
+                              label: 'New Game (Physical Dice)',
+                              icon: Icons.play_arrow_rounded,
+                              isPrimary: false,
+                              onTap: () {
+                                final notifier = ref.read(setupControllerProvider.notifier);
+                                notifier.setUseInGameDice(false);
+                                notifier.setGameMode(false);
                                 context.go('/setup');
                               },
                             ),
@@ -182,7 +196,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                             _MenuButton(
                               label: 'Team Up (2 vs 2)',
                               icon: Icons.groups_rounded,
-                              isPrimary: true,
+                              isPrimary: false,
                               onTap: () {
                                 ref.read(setupControllerProvider.notifier).setGameMode(true);
                                 context.go('/setup');
@@ -495,4 +509,6 @@ class _ResumeGameCard extends StatelessWidget {
         PlayerColor.yellow => GhostDiceTheme.pieceYellow,
       };
 }
+
+
 
