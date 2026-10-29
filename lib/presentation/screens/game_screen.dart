@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -772,7 +772,7 @@ class _BoardAreaState extends ConsumerState<_BoardArea>
 
                 // Medium size: slightly smaller than current size, fits neatly inside cell
                 final pieceWidth =
-                    (c * (totalStacked > 1 ? 0.54 : 0.68)).clamp(18.0, 36.0);
+                    (c * (totalStacked > 1 ? 0.54 : 0.68)).clamp(18.0, 36.0) + 1.8;
                 final pieceHeight = pieceWidth * 1.36;
                 final hitSize = (c * 1.30).clamp(42.0, 60.0);
                 final isLegal = legalPieceIds.contains(piece.id);
@@ -893,7 +893,7 @@ class _HoppingPieceOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = coords.cellSize;
-    final pieceWidth = (c * 0.68).clamp(18.0, 36.0);
+    final pieceWidth = (c * 0.68).clamp(18.0, 36.0) + 1.8;
     final pieceHeight = pieceWidth * 1.36;
     final anchorX = pieceWidth * 0.5;
     final anchorY = pieceHeight * 0.88;
@@ -1387,6 +1387,7 @@ class _CenterDicePopupState extends State<_CenterDicePopup>
         PlayerColor.yellow => GhostDiceTheme.pieceYellow,
       };
 }
+
 
 
 

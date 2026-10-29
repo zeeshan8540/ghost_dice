@@ -1,5 +1,6 @@
-// App router — all routes defined in one place.
+﻿// App router — all routes defined in one place.
 import 'package:go_router/go_router.dart';
+import 'package:ghost_dice/presentation/screens/splash_screen.dart';
 import 'package:ghost_dice/presentation/screens/home_screen.dart';
 import 'package:ghost_dice/presentation/screens/game_setup_screen.dart';
 import 'package:ghost_dice/presentation/screens/game_screen.dart';
@@ -7,8 +8,12 @@ import 'package:ghost_dice/presentation/screens/game_summary_screen.dart';
 import 'package:ghost_dice/presentation/screens/rules_screen.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/splash',
+      builder: (_, __) => const SplashScreen(),
+    ),
     GoRoute(
       path: '/',
       builder: (_, __) => const HomeScreen(),

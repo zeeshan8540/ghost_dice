@@ -1,4 +1,4 @@
-// CapturedPieceFlyBackOverlay — Comical backward flight animation when a piece is killed.
+﻿// CapturedPieceFlyBackOverlay — Comical backward flight animation when a piece is killed.
 // Plays a funny cartoon sound effect and animates the captured piece traveling backwards
 // through all the boxes it covered on the track, back to its start square, and into its yard pocket.
 
@@ -81,7 +81,7 @@ class _CapturedPieceFlyBackOverlayState
   @override
   Widget build(BuildContext context) {
     final c = widget.coords.cellSize;
-    final pieceWidth = (c * 0.68).clamp(18.0, 36.0);
+    final pieceWidth = (c * 0.68).clamp(18.0, 36.0) + 1.8;
     final pieceHeight = pieceWidth * 1.36;
     final anchorX = pieceWidth * 0.5;
     final anchorY = pieceHeight * 0.88;
@@ -199,3 +199,4 @@ class _CapturedPieceFlyBackOverlayState
     );
   }
 }
+
