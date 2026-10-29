@@ -251,8 +251,8 @@ class _TabletopArena extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isLandscape = constraints.maxWidth > constraints.maxHeight;
-        final placeholderW = gameState.rules.useInGameDice ? 160.0 : 125.0;
-        final placeholderH = gameState.rules.useInGameDice ? 50.0 : 42.0;
+        const placeholderW = 110.0;
+        const placeholderH = 56.0;
 
         if (isLandscape) {
           // Landscape Mode:
@@ -770,16 +770,19 @@ class _BoardAreaState extends ConsumerState<_BoardArea>
                   totalStacked: totalStacked,
                 );
 
-                // Medium size: slightly smaller than current size, fits neatly inside cell
-                final pieceWidth =
-                    (c * (totalStacked > 1 ? 0.54 : 0.68)).clamp(18.0, 36.0) + 1.8;
-                final pieceHeight = pieceWidth * 1.36;
-                final hitSize = (c * 1.30).clamp(42.0, 60.0);
+                // Base piece size increased by +0.4px (total +2.2px)
+                final basePieceWidth =
+                    (c * (totalStacked > 1 ? 0.54 : 0.68)).clamp(18.0, 36.0) + 2.2;
                 final isLegal = legalPieceIds.contains(piece.id);
                 final isHopping = _activeHoppingPiece?.id == piece.id;
                 final isFlyingHome = capturingPieceIds.contains(piece.id);
                 final isHidden = isFlyingHome || isHopping;
                 final canTap = isLegal && isAwaiting;
+
+                // Movable pieces increase size by +1.5px matching user requirement
+                final pieceWidth = canTap ? basePieceWidth + 1.5 : basePieceWidth;
+                final pieceHeight = pieceWidth * 1.36;
+                final hitSize = (c * 1.30).clamp(42.0, 60.0);
 
                 void handleTap() {
                   if (!canTap) return;
@@ -893,7 +896,7 @@ class _HoppingPieceOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = coords.cellSize;
-    final pieceWidth = (c * 0.68).clamp(18.0, 36.0) + 1.8;
+    final pieceWidth = (c * 0.68).clamp(18.0, 36.0) + 2.2;
     final pieceHeight = pieceWidth * 1.36;
     final anchorX = pieceWidth * 0.5;
     final anchorY = pieceHeight * 0.88;
@@ -1104,19 +1107,19 @@ class _CenterTableArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 1. Priority 1: 3-Second Dice Number Popup when a piece moves
-    if (activeAnnouncement != null) {
+    // In in-game dice mode, this popup is removed per user requirements.
+    // In physical dice mode, it is preserved.
+    if (activeAnnouncement != null && !gameState.rules.useInGameDice) {
       final ann = activeAnnouncement!;
       return _CenterDicePopup(
         player: ann.player,
         diceValue: ann.diceValue,
         size: size,
-        onRequestUndo: !gameState.rules.useInGameDice
-            ? () {
-                if (gameState.recentEntries.isNotEmpty && !gameState.isVoting) {
-                  onRequestUndo();
-                }
-              }
-            : null,
+        onRequestUndo: () {
+          if (gameState.recentEntries.isNotEmpty && !gameState.isVoting) {
+            onRequestUndo();
+          }
+        },
       );
     }
 

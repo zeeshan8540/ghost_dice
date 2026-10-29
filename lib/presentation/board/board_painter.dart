@@ -243,10 +243,13 @@ class LudoBoardPainter extends CustomPainter {
       text: player.name,
       style: const TextStyle(
         color: Colors.white,
-        fontWeight: FontWeight.w800,
-        fontSize: 11,
+        fontWeight: FontWeight.w900,
+        fontSize: 12.5,
         letterSpacing: 0.5,
-        shadows: [Shadow(color: Colors.black87, blurRadius: 3)],
+        shadows: [
+          Shadow(color: Colors.black, blurRadius: 4, offset: Offset(0, 1.5)),
+          Shadow(color: Colors.black87, blurRadius: 2, offset: Offset(0, 1)),
+        ],
       ),
     );
 
@@ -256,7 +259,11 @@ class LudoBoardPainter extends CustomPainter {
     )..layout();
 
     final x = (startCol + 3) * cell - textPainter.width / 2;
-    final y = (startRow + 0.3) * cell;
+    // Matching Image 2 & 4: Top yards (Red, Green) draw name in top rim,
+    // bottom yards (Blue, Yellow) draw name in bottom rim.
+    final y = startRow < 5
+        ? (startRow + 0.28) * cell
+        : (startRow + 5.18) * cell;
     textPainter.paint(canvas, Offset(x, y));
   }
 

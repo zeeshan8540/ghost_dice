@@ -179,36 +179,86 @@ class _MoldedPlasticPawnPainter extends CustomPainter {
     canvas.drawOval(shadowRect, shadowPaint);
 
     // -------------------------------------------------------------------------
-    // 2. Selection / Active Turn Aura (radiating ring on the board)
+    // 2. Selection / Active Turn Aura (Prominent ground ring matching Image 1 & 3)
     // -------------------------------------------------------------------------
     if (isHighlighted) {
-      final ringWidth = w * (0.86 + pulse * 0.26);
-      final ringHeight = h * (0.22 + pulse * 0.08);
-      final ringPaint = Paint()
-        ..color = const Color(0xFFFFD700).withValues(alpha: 0.55 + pulse * 0.40)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0
-        ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 2.0);
+      final ringWidth = w * (1.10 + pulse * 0.12);
+      final ringHeight = h * (0.32 + pulse * 0.04);
+      final ringCenter = Offset(cx, groundY + 1.0);
+
+      // A. Ground Glow Base
+      final glowPaint = Paint()
+        ..color = const Color(0xFFFF9800).withValues(alpha: 0.35 + pulse * 0.25)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
       canvas.drawOval(
         Rect.fromCenter(
-          center: Offset(cx, groundY + 1.0),
+          center: ringCenter,
+          width: ringWidth * 1.15,
+          height: ringHeight * 1.15,
+        ),
+        glowPaint,
+      );
+
+      // B. Prominent Gear-Tooth / Cog Notches (Matching Image 1 & 3)
+      // 12 radiating gear teeth around the perimeter
+      final gearToothPaint = Paint()
+        ..color = const Color(0xFF6B1110) // Deep burgundy/crimson matching reference
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.2
+        ..strokeCap = StrokeCap.round;
+
+      const numTeeth = 12;
+      for (int i = 0; i < numTeeth; i++) {
+        final angle = (i * 2 * math.pi) / numTeeth + (pulse * 0.2);
+        final cosA = math.cos(angle);
+        final sinA = math.sin(angle);
+        final innerX = cx + (ringWidth * 0.44) * cosA;
+        final innerY = ringCenter.dy + (ringHeight * 0.44) * sinA;
+        final outerX = cx + (ringWidth * 0.58) * cosA;
+        final outerY = ringCenter.dy + (ringHeight * 0.58) * sinA;
+        canvas.drawLine(Offset(innerX, innerY), Offset(outerX, outerY), gearToothPaint);
+      }
+
+      // C. Heavy Outer Burgundy Ring (Matching Image 1 & 3)
+      final outerRingPaint = Paint()
+        ..color = const Color(0xFF781113) // Dark rich crimson
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.2;
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: ringCenter,
           width: ringWidth,
           height: ringHeight,
         ),
-        ringPaint,
+        outerRingPaint,
       );
 
-      final innerGlowPaint = Paint()
-        ..color = Colors.white.withValues(alpha: 0.35 + pulse * 0.25)
+      // D. Brilliant Golden Core Ring
+      final goldRingPaint = Paint()
+        ..color = const Color(0xFFFFD700).withValues(alpha: 0.85 + pulse * 0.15)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0;
+        ..strokeWidth = 2.0;
       canvas.drawOval(
         Rect.fromCenter(
-          center: Offset(cx, groundY + 1.0),
-          width: w * 0.64,
-          height: h * 0.16,
+          center: ringCenter,
+          width: ringWidth * 0.82,
+          height: ringHeight * 0.82,
         ),
-        innerGlowPaint,
+        goldRingPaint,
+      );
+
+      // E. Crisp Inner White Halo Ring
+      final innerWhitePaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.70 + pulse * 0.30)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4;
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: ringCenter,
+          width: ringWidth * 0.60,
+          height: ringHeight * 0.60,
+        ),
+        innerWhitePaint,
       );
     }
 

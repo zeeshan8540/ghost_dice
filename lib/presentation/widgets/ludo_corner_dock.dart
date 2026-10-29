@@ -1,11 +1,16 @@
-﻿// LudoCornerDock — Tabletop player dock matching Image 2 & 3 reference.
-// Shows player avatar pin, name, team badge, and interactive 3D die beside player name.
+// LudoCornerDock — Tabletop player dock matching Image 2, 3, and 4 reference.
+// Shows ONLY the colored piece box and a larger squared 3D dice box (player names are in the home yard).
+// Features an animated blinking arrow pointing toward the die for the player whose turn it is.
+
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:ghost_dice/core/theme/app_theme.dart';
+import 'package:ghost_dice/domain/entities/board_position.dart';
+import 'package:ghost_dice/domain/entities/piece.dart';
 import 'package:ghost_dice/domain/entities/player.dart';
 import 'package:ghost_dice/domain/enums/game_enums.dart';
 import 'package:ghost_dice/infrastructure/services/audio_service.dart';
+import 'package:ghost_dice/presentation/board/piece_widget.dart';
 
 class LudoCornerDock extends StatefulWidget {
   final Player player;
@@ -116,172 +121,127 @@ class _LudoCornerDockState extends State<LudoCornerDock>
         widget.useInGameDice &&
         !_isRolling;
 
-    final dockHeight = widget.useInGameDice ? 50.0 : 44.0;
-    final minW = widget.useInGameDice ? 160.0 : 135.0;
-    final maxW = widget.useInGameDice ? 195.0 : 155.0;
+    // Show blinking arrow when it is this player's active turn
+    final showArrow = widget.isActive && widget.isAwaitingDice;
 
-    return GestureDetector(
-      onTap: isReadyToRoll
-          ? _triggerRoll
-          : (widget.isActive ? widget.onDiceTap : null),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        height: dockHeight,
-        constraints: BoxConstraints(minWidth: minW, maxWidth: maxW),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F3A75),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: widget.isActive
-                ? GhostDiceTheme.dockGold
-                : const Color(0xFF1E5BB0),
-            width: widget.isActive ? 2.2 : 1.2,
-          ),
-          boxShadow: [
-            if (widget.isActive)
-              BoxShadow(
-                color: GhostDiceTheme.dockGold.withValues(alpha: 0.45),
-                blurRadius: 10,
-                spreadRadius: 1,
-              ),
-            const BoxShadow(
-              color: Colors.black45,
-              blurRadius: 5,
-              offset: Offset(0, 2),
-            ),
+    final dockBadge = Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF0F3E80),
+            Color(0xFF092858),
           ],
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: widget.isRightSide
-              ? [
-                  if (widget.isActive) ...[
-                    _TurnArrowIndicator(
-                      isPointingRight: true,
-                      color: GhostDiceTheme.dockGold,
-                    ),
-                    const SizedBox(width: 2),
-                  ],
-                  _buildDiceBox(playerColor, isReadyToRoll),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildPlayerInfo(
-                      playerColor,
-                      isReadyToRoll,
-                      alignEnd: true,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildAvatarPin(playerColor),
-                ]
-              : [
-                  _buildAvatarPin(playerColor),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildPlayerInfo(
-                      playerColor,
-                      isReadyToRoll,
-                      alignEnd: false,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildDiceBox(playerColor, isReadyToRoll),
-                  if (widget.isActive) ...[
-                    const SizedBox(width: 2),
-                    _TurnArrowIndicator(
-                      isPointingRight: false,
-                      color: GhostDiceTheme.dockGold,
-                    ),
-                  ],
-                ],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: widget.isActive
+              ? GhostDiceTheme.dockGold
+              : const Color(0xFF1E4E94),
+          width: widget.isActive ? 2.2 : 1.2,
         ),
+        boxShadow: [
+          if (widget.isActive)
+            BoxShadow(
+              color: GhostDiceTheme.dockGold.withValues(alpha: 0.45),
+              blurRadius: 10,
+              spreadRadius: 1,
+            ),
+          const BoxShadow(
+            color: Colors.black45,
+            blurRadius: 5,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: widget.isRightSide
+            ? [
+                // Right-side dock: [ Big Squared Dice Box ] [ Colored Piece Box ]
+                _buildDiceBox(playerColor, isReadyToRoll),
+                const SizedBox(width: 6),
+                _buildColoredPieceBox(playerColor),
+              ]
+            : [
+                // Left-side dock: [ Colored Piece Box ] [ Big Squared Dice Box ]
+                _buildColoredPieceBox(playerColor),
+                const SizedBox(width: 6),
+                _buildDiceBox(playerColor, isReadyToRoll),
+              ],
       ),
     );
-  }
 
-  Widget _buildPlayerInfo(Color playerColor, bool isReadyToRoll,
-      {required bool alignEnd}) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment:
-          alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.player.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.3,
-          ),
-        ),
-        if (widget.teamLabel != null)
-          Text(
-            widget.teamLabel!,
-            style: TextStyle(
-              color: widget.teamLabel == 'TEAM 1'
-                  ? GhostDiceTheme.dockGold
-                  : Colors.cyanAccent,
-              fontSize: 8,
-              fontWeight: FontWeight.w900,
-            ),
-          )
-        else if (isReadyToRoll)
-          const Text(
-            'TAP TO ROLL',
-            style: TextStyle(
-              color: GhostDiceTheme.dockGold,
-              fontSize: 8,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
-            ),
-          )
-        else if (widget.isActive && widget.isAwaitingPiece)
-          Text(
-            'ROLLED ',
-            style: TextStyle(
-              color: playerColor,
-              fontSize: 8,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
-            ),
-          ),
-      ],
+    // Arrow points toward the die:
+    // Left docks: arrow is to the right pointing left (◄) into the die.
+    // Right docks: arrow is to the left pointing right (►) into the die.
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: widget.isRightSide
+          ? [
+              if (showArrow) ...[
+                const _BlinkingTurnArrow(isPointingRight: true),
+                const SizedBox(width: 4),
+              ],
+              dockBadge,
+            ]
+          : [
+              dockBadge,
+              if (showArrow) ...[
+                const SizedBox(width: 4),
+                const _BlinkingTurnArrow(isPointingRight: false),
+              ],
+            ],
     );
   }
 
-  Widget _buildAvatarPin(Color playerColor) {
+  /// Compact colored piece box (smaller than squared dice box) matching Image 2, 3, 4
+  Widget _buildColoredPieceBox(Color playerColor) {
     return Container(
-      width: 24,
-      height: 24,
+      width: 32,
+      height: 44,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: playerColor,
-        border: Border.all(color: Colors.white, width: 2.2),
+        color: const Color(0xFF082245),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: widget.isActive
+              ? playerColor.withValues(alpha: 0.8)
+              : const Color(0xFF1E4E94).withValues(alpha: 0.5),
+          width: 1.2,
+        ),
         boxShadow: const [
-          BoxShadow(color: Colors.black38, blurRadius: 3, offset: Offset(0, 1.5)),
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
         ],
       ),
       child: Center(
-        child: Container(
-          width: 8,
-          height: 8,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
+        child: PieceWidget(
+          piece: Piece(
+            id: 'dock_${widget.player.id}',
+            playerId: widget.player.id,
+            color: widget.player.color,
+            pieceIndex: 0,
+            position: const BoardPosition.yard(),
           ),
+          width: 20,
+          height: 28,
+          isHighlighted: false,
         ),
       ),
     );
   }
 
+  /// Big squared dice box matching Image 2, 3, 4
   Widget _buildDiceBox(Color playerColor, bool isReadyToRoll) {
-    final boxSize = widget.useInGameDice ? 40.0 : 34.0;
-    final dieSize = widget.useInGameDice ? 36.0 : 28.0;
+    const boxSize = 48.0;
 
     return GestureDetector(
       onTap: isReadyToRoll
@@ -322,7 +282,7 @@ class _LudoCornerDockState extends State<LudoCornerDock>
               color: isReadyToRoll
                   ? GhostDiceTheme.dockGold
                   : (widget.isActive ? playerColor : const Color(0xFFCBD5E1)),
-              width: isReadyToRoll ? 2.4 : (widget.isActive ? 1.8 : 1.0),
+              width: isReadyToRoll ? 2.4 : (widget.isActive ? 2.0 : 1.2),
             ),
             boxShadow: [
               if (isReadyToRoll)
@@ -333,19 +293,22 @@ class _LudoCornerDockState extends State<LudoCornerDock>
                 ),
               const BoxShadow(
                 color: Colors.black26,
-                blurRadius: 3,
-                offset: Offset(0, 1.5),
+                blurRadius: 4,
+                offset: Offset(0, 2),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(5),
           child: widget.useInGameDice
               ? CustomPaint(
                   painter: DiePipPainter(value: _displayFace),
                 )
               : Center(
                   child: widget.currentDiceValue != null
-                      ? _DieFace(value: widget.currentDiceValue!, size: dieSize)
+                      ? CustomPaint(
+                          size: const Size(36, 36),
+                          painter: DiePipPainter(value: widget.currentDiceValue!),
+                        )
                       : (widget.isActive
                           ? FittedBox(
                               fit: BoxFit.scaleDown,
@@ -355,7 +318,7 @@ class _LudoCornerDockState extends State<LudoCornerDock>
                                 children: [
                                   Icon(
                                     Icons.touch_app_rounded,
-                                    size: 14,
+                                    size: 16,
                                     color: playerColor,
                                   ),
                                   Text(
@@ -373,8 +336,8 @@ class _LudoCornerDockState extends State<LudoCornerDock>
                             )
                           : const Icon(
                               Icons.casino_outlined,
-                              size: 18,
-                              color: Color(0xFFB0BEC5),
+                              size: 22,
+                              color: Color(0xFF94A3B8),
                             )),
                 ),
         ),
@@ -390,21 +353,20 @@ class _LudoCornerDockState extends State<LudoCornerDock>
       };
 }
 
-/// Small arrow indicator matching Image 4 active player prompt
-class _TurnArrowIndicator extends StatefulWidget {
+/// Blinking turn arrow indicator matching Image 4 reference.
+/// Size: ~1/3 size of dice (~16px), warm amber-gold color (prominent and non-annoying).
+class _BlinkingTurnArrow extends StatefulWidget {
   final bool isPointingRight;
-  final Color color;
 
-  const _TurnArrowIndicator({
+  const _BlinkingTurnArrow({
     required this.isPointingRight,
-    required this.color,
   });
 
   @override
-  State<_TurnArrowIndicator> createState() => _TurnArrowIndicatorState();
+  State<_BlinkingTurnArrow> createState() => _BlinkingTurnArrowState();
 }
 
-class _TurnArrowIndicatorState extends State<_TurnArrowIndicator>
+class _BlinkingTurnArrowState extends State<_BlinkingTurnArrow>
     with SingleTickerProviderStateMixin {
   late final AnimationController _anim;
 
@@ -413,8 +375,13 @@ class _TurnArrowIndicatorState extends State<_TurnArrowIndicator>
     super.initState();
     _anim = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 550),
     )..repeat(reverse: true);
+  }
+
+  @override
+  void disposeValidate() {
+    _anim.dispose();
   }
 
   @override
@@ -425,104 +392,171 @@ class _TurnArrowIndicatorState extends State<_TurnArrowIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: Tween<double>(begin: 0.5, end: 1.0).animate(_anim),
-      child: Icon(
-        widget.isPointingRight
-            ? Icons.arrow_right_rounded
-            : Icons.arrow_left_rounded,
-        color: widget.color,
-        size: 18,
-      ),
-    );
-  }
-}
+    // Arrow size: 16px wide, 18px high (~1/3 of 48px die)
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) {
+        final opacity = 0.35 + _anim.value * 0.65;
+        // Subtle horizontal nudge pointing towards the die
+        final dx = widget.isPointingRight
+            ? (_anim.value * 3.0)
+            : (-_anim.value * 3.0);
 
-/// Renders a real 3D die face with accurate dot pips
-class _DieFace extends StatelessWidget {
-  final int value;
-  final double size;
-
-  const _DieFace({required this.value, this.size = 28.0});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(size * 0.2),
-        border: Border.all(color: const Color(0xFFCFD8DC), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 2,
-            offset: Offset(0, 1),
+        return Transform.translate(
+          offset: Offset(dx, 0),
+          child: Opacity(
+            opacity: opacity,
+            child: CustomPaint(
+              size: const Size(16, 18),
+              painter: _SolidArrowPainter(
+                isPointingRight: widget.isPointingRight,
+                color: const Color(0xFFFFA000), // Warm golden amber
+                accentColor: const Color(0xFFFFD54F),
+              ),
+            ),
           ),
-        ],
-      ),
-      padding: EdgeInsets.all(size * 0.12),
-      child: CustomPaint(
-        painter: DiePipPainter(value: value),
-      ),
+        );
+      },
     );
   }
 }
 
-class DiePipPainter extends CustomPainter {
-  final int value;
-  DiePipPainter({required this.value});
+/// Custom painter for a solid, thick pointer arrow matching Image 4
+class _SolidArrowPainter extends CustomPainter {
+  final bool isPointingRight;
+  final Color color;
+  final Color accentColor;
+
+  _SolidArrowPainter({
+    required this.isPointingRight,
+    required this.color,
+    required this.accentColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dotPaint = Paint()..color = const Color(0xFF0F172A);
-    final dotRadius = size.width * 0.11;
+    final w = size.width;
+    final h = size.height;
 
-    final left = size.width * 0.22;
-    final center = size.width * 0.5;
-    final right = size.width * 0.78;
+    final path = Path();
+    if (isPointingRight) {
+      // Arrow pointing right ► (head on right, shaft on left)
+      path.moveTo(0, h * 0.28);
+      path.lineTo(w * 0.45, h * 0.28);
+      path.lineTo(w * 0.45, 0);
+      path.lineTo(w, h * 0.5);
+      path.lineTo(w * 0.45, h);
+      path.lineTo(w * 0.45, h * 0.72);
+      path.lineTo(0, h * 0.72);
+      path.close();
+    } else {
+      // Arrow pointing left ◄ (head on left, shaft on right)
+      path.moveTo(w, h * 0.28);
+      path.lineTo(w * 0.55, h * 0.28);
+      path.lineTo(w * 0.55, 0);
+      path.lineTo(0, h * 0.5);
+      path.lineTo(w * 0.55, h);
+      path.lineTo(w * 0.55, h * 0.72);
+      path.lineTo(w, h * 0.72);
+      path.close();
+    }
 
-    final top = size.height * 0.22;
-    final middle = size.height * 0.5;
-    final bottom = size.height * 0.78;
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [accentColor, color],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, w, h))
+      ..style = PaintingStyle.fill;
 
-    void draw(double x, double y) =>
-        canvas.drawCircle(Offset(x, y), dotRadius, dotPaint);
+    final strokePaint = Paint()
+      ..color = const Color(0xFF5D2400) // Dark subtle outline
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(path, fillPaint);
+    canvas.drawPath(path, strokePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SolidArrowPainter oldDelegate) =>
+      oldDelegate.isPointingRight != isPointingRight ||
+      oldDelegate.color != color ||
+      oldDelegate.accentColor != accentColor;
+}
+
+/// CustomPainter rendering sharp authentic 3D dice pips (1 to 6)
+class DiePipPainter extends CustomPainter {
+  final int value;
+
+  const DiePipPainter({required this.value});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final pipRadius = (w * 0.10).clamp(2.5, 4.5);
+
+    // Authentic dark slate/black pips with slight bevel
+    final pipPaint = Paint()
+      ..color = const Color(0xFF1E293B)
+      ..style = PaintingStyle.fill;
+
+    final highlightPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.35)
+      ..style = PaintingStyle.fill;
+
+    void drawPip(double x, double y) {
+      canvas.drawCircle(Offset(x, y), pipRadius, pipPaint);
+      canvas.drawCircle(
+        Offset(x - pipRadius * 0.28, y - pipRadius * 0.28),
+        pipRadius * 0.35,
+        highlightPaint,
+      );
+    }
+
+    final left = w * 0.26;
+    final center = w * 0.50;
+    final right = w * 0.74;
+
+    final top = h * 0.26;
+    final middle = h * 0.50;
+    final bottom = h * 0.74;
 
     switch (value) {
       case 1:
-        draw(center, middle);
+        drawPip(center, middle);
         break;
       case 2:
-        draw(left, top);
-        draw(right, bottom);
+        drawPip(left, top);
+        drawPip(right, bottom);
         break;
       case 3:
-        draw(left, top);
-        draw(center, middle);
-        draw(right, bottom);
+        drawPip(left, top);
+        drawPip(center, middle);
+        drawPip(right, bottom);
         break;
       case 4:
-        draw(left, top);
-        draw(right, top);
-        draw(left, bottom);
-        draw(right, bottom);
+        drawPip(left, top);
+        drawPip(right, top);
+        drawPip(left, bottom);
+        drawPip(right, bottom);
         break;
       case 5:
-        draw(left, top);
-        draw(right, top);
-        draw(center, middle);
-        draw(left, bottom);
-        draw(right, bottom);
+        drawPip(left, top);
+        drawPip(right, top);
+        drawPip(center, middle);
+        drawPip(left, bottom);
+        drawPip(right, bottom);
         break;
       case 6:
-        draw(left, top);
-        draw(right, top);
-        draw(left, middle);
-        draw(right, middle);
-        draw(left, bottom);
-        draw(right, bottom);
+        drawPip(left, top);
+        drawPip(right, top);
+        drawPip(left, middle);
+        drawPip(right, middle);
+        drawPip(left, bottom);
+        drawPip(right, bottom);
         break;
     }
   }
